@@ -35,5 +35,28 @@ const moduleAnalyzer = filename => {
   }
 }
 
-let obj = moduleAnalyzer('./src/index.js')
-console.log(obj);
+// 分析依赖图谱 存取所有模块的依赖信息
+// 解析所有模块的依赖关系并 transforming 转换代码为浏览器可执行的code
+const makeDependencies = (entry) => {
+  const entryModule = moduleAnalyzer(entry)
+  const dependenciesArray = [ entryModule ]
+  for (let i = 0; i < dependenciesArray.length; i++) {
+    let dep = dependenciesArray[i].dependencies
+    if (dep) {
+      for (item in dep) {
+        dependenciesArray.push(moduleAnalyzer(dep[item]))
+      }
+    }
+  }
+  const graph = {}
+  dependenciesArray.forEach(item => {
+    graph[item.filename] = {
+      dependencies: item.dependencies,
+      code: item.code
+    }
+  })
+  return graph;
+}
+
+let graphInfo = makeDependencies('./src/index.js')
+console.log(graphInfo);
